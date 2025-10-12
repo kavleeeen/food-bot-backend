@@ -130,6 +130,7 @@ dmypy.json
 
 # Firebase
 .firebase/
+firebase.json
 firebase-debug.log
 firebase-debug.*.log
 ui-debug.log
