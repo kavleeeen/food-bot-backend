@@ -11,22 +11,24 @@ class ChatService:
         self.langgraph_agent = EnhancedFoodBotAgent()
         print("✅ CHAT SERVICE: Initialized with LangGraph Agent")
     
-    def send_message(self, user_id: str, message: str):
-        """Send message to LangGraph Agent and return response"""
+    def send_message(self, user_id: str, message: str, session_id: str = None):
+        """Send message to LangGraph Agent and return response with session support"""
         print(f"💬 User {user_id} message: {message}")
+        print(f"🆔 Session ID: {session_id or 'default'}")
         
         try:
-            # Get chat history for context
-            chat_history = self.langgraph_agent.get_conversation_history(user_id)
+            # Get chat history for context (session-specific)
+            chat_history = self.langgraph_agent.get_conversation_history(user_id, session_id)
             
             # Process message with LangGraph agent
             print("🤖 Processing with LangGraph Agent...")
-            ai_response = self.langgraph_agent.process_message(user_id, message, chat_history)
+            ai_response = self.langgraph_agent.process_message(user_id, message, chat_history, session_id)
             
             print(f"🤖 AI Response: {ai_response}")
             return {
                 "message": ai_response,
                 "user_message": message,
+                "session_id": session_id or "default",
                 "timestamp": datetime.utcnow().isoformat()
             }
         except Exception as e:

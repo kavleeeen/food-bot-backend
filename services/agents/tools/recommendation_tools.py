@@ -18,6 +18,8 @@ model = init_chat_model(
 def generate_food_recommendation(preferences: dict, user_message: str = "") -> str:
     """Generate food recommendations based on user preferences and context"""
     try:
+        print("=" * 60)
+        print("🔧 RECOMMENDATION TOOL: generate_food_recommendation CALLED!")
         print(f"🔧 RECOMMENDATION TOOL: Generating recommendation with preferences: {preferences}")
         print(f"📝 RECOMMENDATION TOOL: User message: {user_message}")
         
@@ -51,6 +53,7 @@ def generate_food_recommendation(preferences: dict, user_message: str = "") -> s
         print(f"🤖 RECOMMENDATION TOOL: Sending prompt to Gemini: {prompt}")
         response = model.invoke(prompt)
         print(f"📤 RECOMMENDATION TOOL: Gemini response: {response.content}")
+        print("=" * 60)
         return response.content
     except Exception as e:
         print(f"❌ RECOMMENDATION TOOL: Error generating recommendation: {e}")
@@ -60,6 +63,8 @@ def generate_food_recommendation(preferences: dict, user_message: str = "") -> s
 def generate_detailed_recipe(food_name: str, preferences: dict) -> str:
     """Generate recipe, macros, and cooking instructions for a specific food"""
     try:
+        print(f"🔧 RECIPE TOOL: Generating detailed recipe for {food_name}")
+        print(f"📝 RECIPE TOOL: User preferences: {preferences}")
         context = f"Food: {food_name}\nUser preferences: {preferences}\n"
         
         prompt = f"""

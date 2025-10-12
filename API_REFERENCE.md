@@ -145,7 +145,7 @@ curl -X GET http://localhost:5003/api/profile \
 ### 4. AI Chat
 **Endpoint:** `POST /api/chat`
 
-**Description:** Send message to AI agent for food recommendations and preference collection
+**Description:** Send message to AI agent for food recommendations and preference collection. Supports session-based conversation context for isolated conversations.
 
 **Headers:**
 ```
@@ -156,15 +156,21 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "message": "string"
+  "message": "string",
+  "session_id": "string (optional)"
 }
 ```
+
+**Parameters:**
+- `message` (required): The user's message to the AI agent
+- `session_id` (optional): Session ID for conversation context. If not provided, uses "default" session
 
 **Success Response (200):**
 ```json
 {
   "message": "AI agent response text",
   "user_message": "User's original message",
+  "session_id": "session_id_used",
   "timestamp": "2025-10-11T15:53:45.506567"
 }
 ```
@@ -176,10 +182,17 @@ Content-Type: application/json
 
 **Example cURL:**
 ```bash
+# Basic chat without session
 curl -X POST http://localhost:5003/api/chat \
   -H "Authorization: Bearer <jwt_token>" \
   -H "Content-Type: application/json" \
   -d '{"message": "I'\''m hungry, what should I eat?"}'
+
+# Chat with specific session
+curl -X POST http://localhost:5003/api/chat \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "I'\''m hungry, what should I eat?", "session_id": "uuid-string"}'
 ```
 
 **Example Conversations:**
@@ -208,7 +221,151 @@ curl -X POST http://localhost:5003/api/chat \
 
 ---
 
-### 5. Get User Preferences
+### 5. Session Management
+
+#### Create New Session
+**Endpoint:** `POST /api/sessions`
+
+**Description:** Create a new conversation session for the user
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "session_name": "string (optional)"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "session_id": "uuid-string",
+  "session_name": "My Food Session",
+  "created_at": "2025-10-11T14:39:47.611850"
+}
+```
+
+**Error Responses:**
+- `401` - Missing or invalid token
+- `500` - Server error
+
+**Example cURL:**
+```bash
+curl -X POST http://localhost:5003/api/sessions \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"session_name": "Food Planning Session"}'
+```
+
+#### Get User Sessions
+**Endpoint:** `GET /api/sessions`
+
+**Description:** Get all sessions for the current user
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "sessions": [
+    {
+      "session_id": "uuid-string",
+      "session_name": "My Food Session",
+      "message_count": 5,
+      "last_activity": "2025-10-11T14:39:47.611850"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `401` - Missing or invalid token
+- `500` - Server error
+
+#### Get Session History
+**Endpoint:** `GET /api/sessions/{session_id}/history`
+
+**Description:** Get chat history for a specific session
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "history": [
+    {
+      "user": "User message",
+      "assistant": "AI response",
+      "timestamp": "2025-10-11T14:39:47.611850",
+      "session_id": "uuid-string"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `401` - Missing or invalid token
+- `404` - Session not found
+- `500` - Server error
+
+#### Delete Session
+**Endpoint:** `DELETE /api/sessions/{session_id}`
+
+**Description:** Delete a specific session and all its messages
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Session deleted successfully"
+}
+```
+
+**Error Responses:**
+- `401` - Missing or invalid token
+- `404` - Session not found
+- `500` - Server error
+
+#### Clear Session History
+**Endpoint:** `DELETE /api/sessions/{session_id}/history`
+
+**Description:** Clear chat history for a specific session (keeps session)
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Session history cleared successfully"
+}
+```
+
+**Error Responses:**
+- `401` - Missing or invalid token
+- `404` - Session not found
+- `500` - Server error
+
+---
+
+### 6. Get User Preferences
 **Endpoint:** `GET /api/preferences`
 
 **Description:** Get current user's food preferences
@@ -253,7 +410,7 @@ curl -X GET http://localhost:5003/api/preferences \
 
 ---
 
-### 6. Update User Preferences
+### 7. Update User Preferences
 **Endpoint:** `PUT /api/preferences`
 
 **Description:** Update user's food preferences
@@ -315,7 +472,7 @@ curl -X PUT http://localhost:5003/api/preferences \
 
 ---
 
-### 7. Health Check
+### 8. Health Check
 **Endpoint:** `GET /api/health`
 
 **Description:** Check API health and database connectivity
