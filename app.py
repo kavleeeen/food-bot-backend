@@ -18,7 +18,13 @@ from services.preference_service import PreferenceService
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS with specific settings for localhost frontend and production domain
+CORS(app, 
+     origins=['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'https://kavleen.in', 'http://kavleen.in'],
+     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+     supports_credentials=True)
 
 # Initialize services
 auth_service = AuthService()
