@@ -3,7 +3,7 @@
 Simple Flask app with register and login functionality
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from datetime import datetime
 from functools import wraps
@@ -19,12 +19,54 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configure CORS with specific settings for localhost frontend and production domain
+# Configure CORS with environment-aware settings
+def get_cors_origins():
+    """Get CORS origins based on environment"""
+    base_origins = [
+        'http://localhost:3000', 
+        'http://localhost:3001', 
+        'http://127.0.0.1:3000', 
+        'http://127.0.0.1:3001',
+        'https://kavleen.in', 
+        'http://kavleen.in'
+    ]
+    
+    # Add environment-specific origins
+    frontend_url = os.getenv('FRONTEND_URL')
+    if frontend_url:
+        base_origins.append(frontend_url)
+    
+    # Add common deployment domains
+    deployment_domains = [
+        'https://food-bot-backend.vercel.app',
+        'https://food-bot-backend.netlify.app',
+        'https://food-bot-backend.herokuapp.com',
+        'https://food-bot-backend.railway.app',
+        'https://food-bot-backend.render.com'
+    ]
+    
+    # In production, allow all origins for now (you can restrict this later)
+    if os.getenv('FLASK_ENV') == 'production' or os.getenv('ENVIRONMENT') == 'production':
+        return '*'  # Allow all origins in production
+    else:
+        return base_origins + deployment_domains
+
 CORS(app, 
-     origins=['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'https://kavleen.in', 'http://kavleen.in'],
-     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+     origins=get_cors_origins(),
+     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-     supports_credentials=True)
+     supports_credentials=True,
+     expose_headers=['Content-Range', 'X-Content-Range'])
+
+# Add explicit OPTIONS handler for preflight requests
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', "*")
+        response.headers.add('Access-Control-Allow-Methods', "*")
+        return response
 
 # Initialize services
 auth_service = AuthService()
