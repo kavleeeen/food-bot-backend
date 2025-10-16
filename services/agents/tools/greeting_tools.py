@@ -2,7 +2,7 @@
 LangChain Tools for Greeting and General Conversation
 """
 
-from langchain.tools import tool
+# from langchain.tools import tool
 import random
 
 # Pre-stored greeting messages
@@ -26,7 +26,7 @@ GREETING_KEYWORDS = [
     "good day", "hi there", "hey there", "hello there", "greetings"
 ]
 
-@tool
+# @tool
 def detect_and_respond_to_greeting(user_message: str) -> str:
     """Detect if user is greeting and respond with a shuffled greeting message"""
     print("=" * 60)
@@ -50,7 +50,7 @@ def detect_and_respond_to_greeting(user_message: str) -> str:
         print("=" * 60)
         return "NOT_A_GREETING"
 
-@tool
+# @tool
 def get_greeting_suggestions() -> str:
     """Get suggestions for what users can ask about"""
     suggestions = [
@@ -70,3 +70,5 @@ def get_greeting_suggestions() -> str:
     print(f"🔧 GREETING TOOL: Returning suggestions")
     print("=" * 60)
     return response
+
+

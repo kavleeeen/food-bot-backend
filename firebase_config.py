@@ -5,19 +5,10 @@ from firebase_admin import credentials, firestore
 from google.cloud import firestore as gcp_firestore
 from google.api_core.exceptions import GoogleAPIError
 import time
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Get configuration from environment variables with defaults
-FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "food-recommend-39842")
-FIREBASE_DATABASE_ID = os.getenv("FIREBASE_DATABASE_ID", "food-bot")
-FIREBASE_KEY_FILE = os.getenv("FIREBASE_KEY_FILE", "firebase.json")
 
 # Reduce noisy logs and set timeouts
 os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
-os.environ.setdefault("GOOGLE_CLOUD_PROJECT", FIREBASE_PROJECT_ID)
+os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "chat-app-f3937")
 logging.getLogger('grpc').setLevel(logging.ERROR)
 logging.getLogger('google.auth.transport.grpc').setLevel(logging.ERROR)
 logging.getLogger('google.auth').setLevel(logging.ERROR)
@@ -27,11 +18,11 @@ logger.setLevel(logging.INFO)
 
 
 class FirebaseConfig:
-    def __init__(self, key_path: str = None, project_id: str = None, database_id: str = None):
+    def __init__(self, key_path: str = "./firebase.json", project_id: str = None):
         self.db = None
-        self.key_path = os.path.abspath(key_path) if key_path else FIREBASE_KEY_FILE
-        self.project_id = project_id or FIREBASE_PROJECT_ID
-        self.database_id = database_id or FIREBASE_DATABASE_ID
+        self.key_path = os.path.abspath(key_path) if key_path else None
+        # Prefer explicit project id, else env set by Cloud Run
+        self.project_id = project_id or os.getenv("GOOGLE_CLOUD_PROJECT", "chat-app-f3937")
         self._initialize_firebase()
 
     def _initialize_firebase(self):
@@ -49,51 +40,75 @@ class FirebaseConfig:
                 self.db = gcp_firestore.Client(
                     project=self.project_id,
                     credentials=cred,
-                    database=self.database_id
+                    database='(default)'
                 )
-                print(f"✅ FIREBASE CONFIG: Firebase already initialized, using existing client for '{self.database_id}' database")
+                print("✅ FIREBASE CONFIG: Firebase already initialized, using existing client for '(default)' database")
                 return
             else:
                 print("📭 FIREBASE CONFIG: No existing Firebase apps found, initializing new one")
             
-            # Initialize Firebase with service account key
-            key_file_path = self.key_path
-            print(f"🔍 FIREBASE CONFIG: Looking for key file at: {key_file_path}")
-            print(f"📂 FIREBASE CONFIG: Absolute path: {os.path.abspath(key_file_path)}")
+            # Initialize Firebase credentials with fallbacks suitable for Cloud Run
+            # Priority:
+            # 1) GOOGLE_APPLICATION_CREDENTIALS
+            # 2) Application Default Credentials (Workload Identity)
+            # 3) FIREBASE_KEY_FILE env (mounted secret path) - only if explicitly set
+            gac_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+            key_file_path = os.getenv('FIREBASE_KEY_FILE')
             
-            if os.path.exists(key_file_path):
-                print("📁 FIREBASE CONFIG: Key file found")
-                print("🔧 FIREBASE CONFIG: Creating credentials object...")
-                cred = credentials.Certificate(key_file_path)
-                print("✅ FIREBASE CONFIG: Credentials object created successfully")
-                
-                print("🚀 FIREBASE CONFIG: Initializing Firebase app...")
-                firebase_admin.initialize_app(cred)
-                print("✅ FIREBASE CONFIG: Firebase app initialized with key file")
-                print(f"📊 FIREBASE CONFIG: Firebase apps count: {len(firebase_admin._apps)}")
+            print(f"🔍 FIREBASE CONFIG: GOOGLE_APPLICATION_CREDENTIALS: {gac_path}")
+            if key_file_path:
+                print(f"🔍 FIREBASE CONFIG: FIREBASE_KEY_FILE: {key_file_path}")
+                print(f"📂 FIREBASE CONFIG: Absolute path: {os.path.abspath(key_file_path)}")
+
+            cred_obj = None
+            if gac_path and os.path.exists(gac_path):
+                print("📁 FIREBASE CONFIG: Using GOOGLE_APPLICATION_CREDENTIALS for credentials")
+                cred_obj = credentials.Certificate(gac_path)
+            elif key_file_path and os.path.exists(key_file_path):
+                print("📁 FIREBASE CONFIG: Using FIREBASE_KEY_FILE for credentials")
+                cred_obj = credentials.Certificate(key_file_path)
             else:
-                print("❌ FIREBASE CONFIG: Key file not found")
-                print(f"📂 FIREBASE CONFIG: Directory contents: {os.listdir('.')}")
-                raise ValueError(f"{key_file_path} not found")
+                print("ℹ️  FIREBASE CONFIG: No key files present. Using Application Default Credentials")
+                try:
+                    firebase_admin.initialize_app()
+                    print("✅ FIREBASE CONFIG: Firebase app initialized with ADC")
+                except Exception as adc_err:
+                    print(f"❌ FIREBASE CONFIG: ADC initialization failed: {adc_err}")
+                    print(f"📂 FIREBASE CONFIG: Directory contents: {os.listdir('.')}")
+                    raise
+
+            if cred_obj is not None:
+                print("🚀 FIREBASE CONFIG: Initializing Firebase app with explicit credentials...")
+                firebase_admin.initialize_app(cred_obj)
+                print("✅ FIREBASE CONFIG: Firebase app initialized with explicit credentials")
+            
+            print(f"📊 FIREBASE CONFIG: Firebase apps count: {len(firebase_admin._apps)}")
             
             # Create Firestore client with specific database
-            print(f"🔗 FIREBASE CONFIG: Getting Firestore client for '{self.database_id}' database...")
+            print("🔗 FIREBASE CONFIG: Getting Firestore client for '(default)' database...")
             # Get the credentials from the Firebase app
             app = firebase_admin.get_app()
-            cred = app.credential.get_credential()
-            self.db = gcp_firestore.Client(
-                project=self.project_id,
-                credentials=cred,
-                database=self.database_id
-            )
+            try:
+                cred = app.credential.get_credential()
+                self.db = gcp_firestore.Client(
+                    project=self.project_id,
+                    credentials=cred,
+                    database='(default)'
+                )
+            except Exception:
+                print("ℹ️  FIREBASE CONFIG: Falling back to Firestore Client with ADC")
+                self.db = gcp_firestore.Client(
+                    project=self.project_id,
+                    database='(default)'
+                )
             print("✅ FIREBASE CONFIG: Firestore client created successfully")
             print(f"🔗 FIREBASE CONFIG: Firestore client type: {type(self.db)}")
-            print(f"📊 FIREBASE CONFIG: Using database: {self.database_id}")
+            print(f"📊 FIREBASE CONFIG: Using database: (default)")
             
             # Skip connectivity test to avoid hanging
             print("⚠️  FIREBASE CONFIG: Skipping connectivity test to avoid hanging")
             print("✅ FIREBASE CONFIG: Firebase initialized successfully")
-            print(f"📊 FIREBASE CONFIG: Database: {self.database_id} (Firestore)")
+            print(f"📊 FIREBASE CONFIG: Database: (default) (Firestore)")
             
         except Exception as e:
             print(f"❌ FIREBASE CONFIG: Firebase initialization failed: {e}")

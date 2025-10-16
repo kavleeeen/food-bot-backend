@@ -175,3 +175,14 @@ config.json
 # Backup files
 *.bak
 *.backup
+
+# Wheel files and wheelhouse directory
+*.whl
+wheelhouse/
+
+# Google Cloud credentials
+application_default_credentials.json
+service-account-key.json
+
+# Local development
+test_firebase.py

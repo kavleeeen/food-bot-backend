@@ -2,19 +2,19 @@
 LangChain Tools for Food Recommendations
 """
 
-from langchain.tools import tool
-from langchain.chat_models import init_chat_model
+# from langchain.tools import tool
+# from langchain.chat_models import init_chat_model
 import os
 
 # Initialize Gemini using universal initialization
-model = init_chat_model(
-    "gemini-2.0-flash-exp",
-    model_provider="google_genai",
-    temperature=0.7,
-    google_api_key=os.getenv('GEMINI_API_KEY', 'AIzaSyCsiox7IZixwTIpEe8cw95dGJxZrdtSx0U')
-)
+# model = init_chat_model(
+#     "gemini-2.0-flash-exp",
+#     model_provider="google_genai",
+#     temperature=0.7,
+#     google_api_key=os.getenv('GEMINI_API_KEY', 'AIzaSyCsiox7IZixwTIpEe8cw95dGJxZrdtSx0U')
+# )
 
-@tool
+# @tool
 def generate_food_recommendation(preferences: dict, user_message: str = "") -> str:
     """Generate food recommendations based on user preferences and context"""
     try:
@@ -59,7 +59,7 @@ def generate_food_recommendation(preferences: dict, user_message: str = "") -> s
         print(f"❌ RECOMMENDATION TOOL: Error generating recommendation: {e}")
         return "Sorry, I'm having trouble generating recommendations right now."
 
-@tool
+# @tool
 def generate_detailed_recipe(food_name: str, preferences: dict) -> str:
     """Generate recipe, macros, and cooking instructions for a specific food"""
     try:

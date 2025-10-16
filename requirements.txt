@@ -5,6 +5,4 @@ pyjwt==2.8.0
 python-dotenv==1.0.0
 firebase-admin==6.4.0
 google-cloud-firestore==2.13.1
-langchain==0.3.0
-langchain-google-genai==2.0.0
-# (omit google-generativeai or add compatible range here if you import it directly)
+gunicorn==23.0.0

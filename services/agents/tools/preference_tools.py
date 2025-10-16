@@ -2,12 +2,12 @@
 LangChain Tools for Preference Management
 """
 
-from langchain.tools import tool
+# from langchain.tools import tool
 from services.preference_service import PreferenceService
 
 preference_service = PreferenceService()
 
-@tool
+# @tool
 def read_user_preferences(user_id: str) -> dict:
     """Read user's current food preferences from database"""
     print("=" * 60)
@@ -18,7 +18,7 @@ def read_user_preferences(user_id: str) -> dict:
     print("=" * 60)
     return result
 
-@tool
+# @tool
 def update_user_preferences(user_id: str, preferences: dict) -> bool:
     """Update user's food preferences in database"""
     print("=" * 60)
@@ -30,7 +30,7 @@ def update_user_preferences(user_id: str, preferences: dict) -> bool:
     print("=" * 60)
     return result
 
-@tool
+# @tool
 def add_single_preference(user_id: str, preference_type: str, value: str) -> bool:
     """Add a single preference to user's existing preferences"""
     print("=" * 60)
@@ -42,7 +42,7 @@ def add_single_preference(user_id: str, preference_type: str, value: str) -> boo
     print("=" * 60)
     return result
 
-@tool
+# @tool
 def check_missing_mandatory_preferences(preferences: dict = None) -> list:
     """Check which mandatory preferences are missing (restrictions, allergies, cuisine_preferences)"""
     print("=" * 60)
@@ -56,7 +56,7 @@ def check_missing_mandatory_preferences(preferences: dict = None) -> list:
     print("=" * 60)
     return result
 
-@tool
+# @tool
 def has_complete_preferences(preferences: dict = None) -> bool:
     """Check if user has all mandatory preferences"""
     print("=" * 60)
