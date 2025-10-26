@@ -3,13 +3,13 @@ Enhanced LangGraph-based Food Bot Agent with Memory
 Uses LangChain agents framework with persistent memory and better tool integration
 """
 
-# from langchain.chat_models import init_chat_model
-# from langgraph.prebuilt import create_react_agent
-# from langchain_core.chat_history import BaseChatMessageHistory
-# from langchain_community.chat_message_histories import ChatMessageHistory
-# from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-# from langchain_core.runnables.history import RunnableWithMessageHistory
-# from langchain_core.runnables import RunnableConfig
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.prebuilt import create_react_agent
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.runnables import RunnableConfig
 from services.preference_service import PreferenceService
 from services.chat_history_service import ChatHistoryService
 from services.agents.tools.preference_tools import (
@@ -34,9 +34,8 @@ class EnhancedFoodBotAgent:
         print("🤖 ENHANCED LANGGRAPH AGENT: Initializing Food Bot Agent...")
         
         # Initialize LLM
-        self.llm = init_chat_model(
-            "gemini-2.5-flash",
-            model_provider="google_genai",
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
             temperature=0.7,
             google_api_key=os.getenv('GEMINI_API_KEY', 'your-gemini-api-key-here')
         )

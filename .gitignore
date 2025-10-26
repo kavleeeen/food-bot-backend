@@ -186,3 +186,7 @@ service-account-key.json
 
 # Local development
 test_firebase.py
+
+# Deployment files
+setup_and_deploy.sh
+deploy.md

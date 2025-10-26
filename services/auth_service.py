@@ -44,6 +44,9 @@ class AuthService:
             if existing_user:
                 print("❌ Email already registered")
                 raise ValueError("Email already registered")
+        except ValueError as ve:
+            # Re-raise ValueError (like "Email already registered") as-is
+            raise ve
         except Exception as e:
             print(f"❌ FIRESTORE: Error checking existing user: {e}")
             raise Exception("Database connection failed")

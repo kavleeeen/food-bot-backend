@@ -6,8 +6,7 @@ Stores and retrieves chat history from Firebase Firestore
 from firebase_admin import firestore
 from datetime import datetime
 from typing import List, Dict, Any, Optional
-# from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
-# from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory
 import json
 from firebase_config import firebase_config
 

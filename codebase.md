@@ -682,7 +682,7 @@ def generate_food_recommendation(preferences: dict, user_message: str = "") -> s
         context += f"User message: {user_message}\n"
     
     # Sends detailed prompt to Gemini
-    prompt = f"""You are a food recommendation assistant for Indian users..."""
+    prompt = f"""You are a food recommendation assistant for Indian users... Be direct and to the point"""
     
     # Gets response from Gemini
     response = model.invoke(prompt)

@@ -47,13 +47,15 @@ class FirebaseConfig:
             else:
                 print("📭 FIREBASE CONFIG: No existing Firebase apps found, initializing new one")
             
-            # Initialize Firebase credentials with fallbacks suitable for Cloud Run
+            # Initialize Firebase credentials with fallbacks
             # Priority:
             # 1) GOOGLE_APPLICATION_CREDENTIALS
-            # 2) Application Default Credentials (Workload Identity)
-            # 3) FIREBASE_KEY_FILE env (mounted secret path) - only if explicitly set
+            # 2) FIREBASE_KEY_FILE env
+            # 3) firebase.json in current directory
+            # 4) Application Default Credentials (last resort)
             gac_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
             key_file_path = os.getenv('FIREBASE_KEY_FILE')
+            local_key_path = './firebase.json'
             
             print(f"🔍 FIREBASE CONFIG: GOOGLE_APPLICATION_CREDENTIALS: {gac_path}")
             if key_file_path:
@@ -67,6 +69,9 @@ class FirebaseConfig:
             elif key_file_path and os.path.exists(key_file_path):
                 print("📁 FIREBASE CONFIG: Using FIREBASE_KEY_FILE for credentials")
                 cred_obj = credentials.Certificate(key_file_path)
+            elif os.path.exists(local_key_path):
+                print("📁 FIREBASE CONFIG: Using local firebase.json for credentials")
+                cred_obj = credentials.Certificate(local_key_path)
             else:
                 print("ℹ️  FIREBASE CONFIG: No key files present. Using Application Default Credentials")
                 try:
